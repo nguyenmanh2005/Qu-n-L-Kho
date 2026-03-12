@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "K8C1MdgjPi4=",
+  "dgSpecHash": "KVYHFJD7hBc=",
   "success": true,
-  "projectFilePath": "D:\\2_QLKho\\warehouse-app\\be\\WarehouseAPI\\WarehouseAPI.csproj",
+  "projectFilePath": "D:\\2_Qu-n-L-Kho\\warehouse-app\\be\\WarehouseAPI\\WarehouseAPI.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\manht\\.nuget\\packages\\azure.core\\1.47.1\\azure.core.1.47.1.nupkg.sha512",
     "C:\\Users\\manht\\.nuget\\packages\\azure.identity\\1.14.2\\azure.identity.1.14.2.nupkg.sha512",

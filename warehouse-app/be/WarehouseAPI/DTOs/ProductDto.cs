@@ -21,6 +21,7 @@ public class UpdateProductDto
     public decimal CostPrice { get; set; }
     public decimal SellingPrice { get; set; }
     public int MinStock { get; set; }
+    public int CurrentStock { get; set; }
     public int? SupplierId { get; set; }
 }
 
@@ -38,12 +39,4 @@ public class ProductResponseDto
     public int? SupplierId { get; set; }
     public string? SupplierName { get; set; }
     public DateTime CreatedAt { get; set; }
-}
-public class OrderItemDto
-{
-    public int ProductId { get; set; }
-    public string? ProductName { get; set; }
-    public string? ProductUnit { get; set; }
-    public int Quantity { get; set; }
-    public decimal UnitPrice { get; set; }
 }

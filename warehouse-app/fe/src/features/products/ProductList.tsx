@@ -3,24 +3,19 @@ import { useApi } from '@/hooks/useApi';
 import { Toast, Modal, Btn, Input, Select, Loading, Empty, Badge } from '@/components';
 
 interface Product {
-  id: number;
-  name: string;
-  sku: string;
-  category: string;
-  unit: string;
-  costPrice: number;
-  sellingPrice: number;
-  currentStock: number;
-  minStock: number;
-  supplierId?: number;
-  supplierName?: string;
+  id: number; name: string; sku: string; category: string; unit: string;
+  costPrice: number; sellingPrice: number;
+  currentStock: number; minStock: number;
+  supplierId?: number; supplierName?: string;
 }
 
 interface Supplier { id: number; name: string; }
 
 const EMPTY = {
   name: '', sku: '', category: '', unit: 'cái',
-  costPrice: 0, sellingPrice: 0, minStock: 5, supplierId: undefined as number | undefined,
+  costPrice: 0, sellingPrice: 0, minStock: 5,
+  currentStock: 0,
+  supplierId: undefined as number | undefined,
 };
 
 const fmt = (n: number) => n.toLocaleString('vi-VN') + '₫';
@@ -48,20 +43,21 @@ export default function ProductList() {
     setLoading(true);
     try {
       const [p, s] = await Promise.all([api.get('/products'), api.get('/suppliers')]);
-      setProducts(p.data);
-      setSuppliers(s.data);
+      setProducts(p.data); setSuppliers(s.data);
     } finally { setLoading(false); }
   };
 
   useEffect(() => { load(); }, []);
 
   const openCreate = () => { setForm(EMPTY); setModal('create'); };
-  const openEdit   = (p: Product) => {
+
+  const openEdit = (p: Product) => {
     setEditing(p);
     setForm({
       name: p.name, sku: p.sku, category: p.category, unit: p.unit,
       costPrice: p.costPrice, sellingPrice: p.sellingPrice,
-      minStock: p.minStock, supplierId: p.supplierId,
+      minStock: p.minStock, currentStock: p.currentStock,
+      supplierId: p.supplierId,
     });
     setModal('edit');
   };
@@ -93,7 +89,7 @@ export default function ProductList() {
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
       setForm(prev => ({
         ...prev,
-        [k]: ['costPrice', 'sellingPrice', 'minStock', 'supplierId'].includes(k)
+        [k]: ['costPrice', 'sellingPrice', 'minStock', 'currentStock', 'supplierId'].includes(k)
           ? +e.target.value : e.target.value,
       }));
 
@@ -117,6 +113,7 @@ export default function ProductList() {
         <Btn variant="emerald" onClick={openCreate}>+ Thêm sản phẩm</Btn>
       </div>
 
+      {/* Search + filter */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3 flex gap-3 flex-wrap items-center">
         <input value={search} onChange={e => setSearch(e.target.value)}
           placeholder="🔍 Tìm tên, SKU..."
@@ -132,72 +129,101 @@ export default function ProductList() {
         )}
       </div>
 
+      {/* Table */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-        {loading ? <Loading /> : filtered.length === 0 ? <Empty icon="📦" text="Không tìm thấy sản phẩm" /> : (
-          <table className="w-full">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-100">
-                {['Sản phẩm', 'SKU', 'Danh mục', 'Giá nhập', 'Giá bán', 'Tồn kho', 'Trạng thái', ''].map(h => (
-                  <th key={h} className="text-left px-5 py-3.5 text-xs font-bold text-slate-400 uppercase tracking-wider">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              {filtered.map(p => {
-                const { label, color } = stockBadge(p);
-                return (
-                  <tr key={p.id} className="hover:bg-slate-50/80 transition-colors group">
-                    <td className="px-5 py-4">
-                      <div className="font-semibold text-slate-800 text-sm">{p.name}</div>
-                      {p.supplierName && <div className="text-xs text-slate-400">{p.supplierName}</div>}
-                    </td>
-                    <td className="px-5 py-4"><code className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-xs">{p.sku}</code></td>
-                    <td className="px-5 py-4 text-sm text-slate-500">{p.category || '—'}</td>
-                    <td className="px-5 py-4 text-sm text-slate-600 font-medium">{fmt(p.costPrice)}</td>
-                    <td className="px-5 py-4 text-sm text-emerald-600 font-bold">{fmt(p.sellingPrice)}</td>
-                    <td className="px-5 py-4 text-sm font-black text-slate-800">
-                      {p.currentStock} <span className="text-xs font-normal text-slate-400">{p.unit}</span>
-                    </td>
-                    <td className="px-5 py-4"><Badge label={label} color={color} /></td>
-                    <td className="px-5 py-4">
-                      <div className="flex gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
-                        <Btn size="sm" variant="ghost" onClick={() => openEdit(p)}>Sửa</Btn>
-                        <Btn size="sm" variant="danger" onClick={() => del(p)}>Xóa</Btn>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
+        {loading ? <Loading /> : filtered.length === 0
+          ? <Empty icon="📦" text="Không tìm thấy sản phẩm" />
+          : (
+            <table className="w-full">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-100">
+                  {['Sản phẩm', 'SKU', 'Danh mục', 'Giá nhập', 'Giá bán', 'Tồn kho', 'Trạng thái', ''].map(h => (
+                    <th key={h} className="text-left px-5 py-3.5 text-xs font-bold text-slate-400 uppercase tracking-wider">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {filtered.map(p => {
+                  const { label, color } = stockBadge(p);
+                  return (
+                    <tr key={p.id} className="hover:bg-slate-50/80 transition-colors group">
+                      <td className="px-5 py-4">
+                        <div className="font-semibold text-slate-800 text-sm">{p.name}</div>
+                        {p.supplierName && <div className="text-xs text-slate-400">{p.supplierName}</div>}
+                      </td>
+                      <td className="px-5 py-4">
+                        <code className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-xs">{p.sku}</code>
+                      </td>
+                      <td className="px-5 py-4 text-sm text-slate-500">{p.category || '—'}</td>
+                      <td className="px-5 py-4 text-sm text-slate-600 font-medium">{fmt(p.costPrice)}</td>
+                      <td className="px-5 py-4 text-sm text-emerald-600 font-bold">{fmt(p.sellingPrice)}</td>
+                      <td className="px-5 py-4 text-sm font-black text-slate-800">
+                        {p.currentStock} <span className="text-xs font-normal text-slate-400">{p.unit}</span>
+                      </td>
+                      <td className="px-5 py-4"><Badge label={label} color={color} /></td>
+                      <td className="px-5 py-4">
+                        <div className="flex gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
+                          <Btn size="sm" variant="ghost" onClick={() => openEdit(p)}>Sửa</Btn>
+                          <Btn size="sm" variant="danger" onClick={() => del(p)}>Xóa</Btn>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
       </div>
 
+      {/* Modal tạo / sửa */}
       {modal !== 'none' && (
         <Modal
           title={modal === 'create' ? 'Thêm sản phẩm mới' : `Sửa: ${editing?.name}`}
           maxWidth="max-w-2xl"
-          onClose={() => setModal('none')}
-        >
+          onClose={() => setModal('none')}>
+
           <div className="grid grid-cols-2 gap-3">
             <Input label="Tên sản phẩm *" value={form.name} onChange={f('name')} placeholder="VD: Nước suối Lavie" />
             <Input label="SKU / Mã hàng *" value={form.sku} onChange={f('sku')} placeholder="VD: LAVIE-500" />
           </div>
+
           <div className="grid grid-cols-2 gap-3">
             <Input label="Danh mục" value={form.category} onChange={f('category')} placeholder="VD: Đồ uống" />
             <Input label="Đơn vị" value={form.unit} onChange={f('unit')} placeholder="cái, kg, hộp..." />
           </div>
+
           <div className="grid grid-cols-2 gap-3">
             <Input label="Giá nhập (₫)" type="number" value={form.costPrice} onChange={f('costPrice')} />
             <Input label="Giá bán (₫)" type="number" value={form.sellingPrice} onChange={f('sellingPrice')} />
           </div>
+
           <div className="grid grid-cols-2 gap-3">
             <Input label="Mức cảnh báo tồn" type="number" value={form.minStock} onChange={f('minStock')} />
+            {/* Chỉ hiện ô tồn kho khi sửa, không hiện khi tạo mới */}
+            {modal === 'edit'
+              ? <Input label="Tồn kho hiện tại" type="number" value={form.currentStock} onChange={f('currentStock')} />
+              : <Select label="Nhà cung cấp" value={form.supplierId ?? ''} onChange={f('supplierId')}>
+                  <option value="">-- Không chọn --</option>
+                  {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </Select>
+            }
+          </div>
+
+          {/* Khi sửa thì hiện nhà cung cấp ở hàng riêng */}
+          {modal === 'edit' && (
             <Select label="Nhà cung cấp" value={form.supplierId ?? ''} onChange={f('supplierId')}>
               <option value="">-- Không chọn --</option>
               {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
             </Select>
-          </div>
+          )}
+
+          {/* Cảnh báo khi sửa tồn kho */}
+          {modal === 'edit' && (
+            <div className="p-3 bg-amber-50 border border-amber-100 rounded-xl text-xs text-amber-700">
+              ⚠️ Sửa tồn kho trực tiếp sẽ không tạo phiếu nhập/xuất. Chỉ dùng khi kiểm kê thực tế.
+            </div>
+          )}
+
           <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
             <Btn variant="ghost" onClick={() => setModal('none')}>Hủy</Btn>
             <Btn variant="emerald" onClick={save} disabled={saving}>

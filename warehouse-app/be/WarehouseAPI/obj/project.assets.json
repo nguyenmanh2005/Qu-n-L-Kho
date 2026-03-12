@@ -3612,11 +3612,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\2_QLKho\\warehouse-app\\be\\WarehouseAPI\\WarehouseAPI.csproj",
+      "projectUniqueName": "D:\\2_Qu-n-L-Kho\\warehouse-app\\be\\WarehouseAPI\\WarehouseAPI.csproj",
       "projectName": "WarehouseAPI",
-      "projectPath": "D:\\2_QLKho\\warehouse-app\\be\\WarehouseAPI\\WarehouseAPI.csproj",
+      "projectPath": "D:\\2_Qu-n-L-Kho\\warehouse-app\\be\\WarehouseAPI\\WarehouseAPI.csproj",
       "packagesPath": "C:\\Users\\manht\\.nuget\\packages\\",
-      "outputPath": "D:\\2_QLKho\\warehouse-app\\be\\WarehouseAPI\\obj\\",
+      "outputPath": "D:\\2_Qu-n-L-Kho\\warehouse-app\\be\\WarehouseAPI\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

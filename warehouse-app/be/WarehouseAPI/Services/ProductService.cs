@@ -54,6 +54,7 @@ public class ProductService(IProductRepository repo) : IProductService
         product.CostPrice    = dto.CostPrice;
         product.SellingPrice = dto.SellingPrice;
         product.MinStock     = dto.MinStock;
+        product.CurrentStock = dto.CurrentStock;
         product.SupplierId   = dto.SupplierId;
 
         var updated = await repo.UpdateAsync(product);
